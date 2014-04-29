@@ -15,6 +15,16 @@ dynamically appears in the page admin interface.
 
 Each page can have a different template with different placeholders.
 
+Fork modifications:
+
+Page groups added(inherit from MPTT), now you can create groups and assign them to pages. Then use in templates:
+
+{% get_subgroups 'group_name' as subgroups %}
+to get children of group
+
+{% get_group_pages 'group_name' as pages %}
+to get pages for the 'group_name' group
+
 .. image:: https://github.com/batiste/django-page-cms/raw/master/doc/admin-screenshot1.png
 
 Documentation
