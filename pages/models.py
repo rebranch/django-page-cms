@@ -19,7 +19,6 @@ from django.contrib.sites.models import Site
 from django.conf import settings as global_settings
 from django.utils.encoding import python_2_unicode_compatible
 
-
 from mptt.models import MPTTModel
 
 PAGE_CONTENT_DICT_KEY = ContentManager.PAGE_CONTENT_DICT_KEY
@@ -73,39 +72,40 @@ class Page(MPTTModel):
     author = models.ForeignKey(django_settings.AUTH_USER_MODEL, verbose_name=_('author'))
 
     parent = models.ForeignKey('self', null=True, blank=True,
-            related_name='children', verbose_name=_('parent'))
+                               related_name='children', verbose_name=_('parent'))
+    groups = models.ManyToManyField('PageGroup', verbose_name=_('page groups'), null=True, blank=True)
     creation_date = models.DateTimeField(_('creation date'), editable=False,
-            default=get_now)
+                                         default=get_now)
     publication_date = models.DateTimeField(_('publication date'),
-            null=True, blank=True, help_text=_('''When the page should go
+                                            null=True, blank=True, help_text=_('''When the page should go
             live. Status must be "Published" for page to go live.'''))
     publication_end_date = models.DateTimeField(_('publication end date'),
-            null=True, blank=True, help_text=_('''When to expire the page.
+                                                null=True, blank=True, help_text=_('''When to expire the page.
             Leave empty to never expire.'''))
 
     last_modification_date = models.DateTimeField(_('last modification date'))
 
     status = models.IntegerField(_('status'), choices=STATUSES, default=DRAFT)
     template = models.CharField(_('template'), max_length=100, null=True,
-            blank=True)
+                                blank=True)
 
     delegate_to = models.CharField(_('delegate to'), max_length=100, null=True,
-            blank=True)
+                                   blank=True)
 
     freeze_date = models.DateTimeField(_('freeze date'),
-            null=True, blank=True, help_text=_('''Don't publish any content
+                                       null=True, blank=True, help_text=_('''Don't publish any content
             after this date.'''))
 
     if settings.PAGE_USE_SITE_ID:
         sites = models.ManyToManyField(Site,
-                default=lambda: [global_settings.SITE_ID],
-                help_text=_('The site(s) the page is accessible at.'),
-                verbose_name=_('sites'))
+                                       default=lambda: [global_settings.SITE_ID],
+                                       help_text=_('The site(s) the page is accessible at.'),
+                                       verbose_name=_('sites'))
 
     redirect_to_url = models.CharField(max_length=200, null=True, blank=True)
 
     redirect_to = models.ForeignKey('self', null=True, blank=True,
-            related_name='redirected_pages')
+                                    related_name='redirected_pages')
 
     # Managers
     objects = PageManager()
@@ -141,7 +141,7 @@ class Page(MPTTModel):
         if self.status == self.DRAFT:
             if settings.PAGE_SHOW_START_DATE:
                 if (self.publication_date and
-                        self.publication_date <= get_now()):
+                            self.publication_date <= get_now()):
                     self.publication_date = None
             else:
                 self.publication_date = None
@@ -165,11 +165,13 @@ class Page(MPTTModel):
                 return self.EXPIRED
 
         return self.status
+
     calculated_status = property(_get_calculated_status)
 
     def _visible(self):
         """Return True if the page is visible on the frontend."""
         return self.calculated_status in (self.PUBLISHED, self.HIDDEN)
+
     visible = property(_visible)
 
     def get_children(self):
@@ -231,10 +233,10 @@ class Page(MPTTModel):
         for name in p_names:
             # frozen
             cache.delete(PAGE_CONTENT_DICT_KEY %
-                (self.id, name, 1))
+                         (self.id, name, 1))
             # not frozen
             cache.delete(PAGE_CONTENT_DICT_KEY %
-                (self.id, name, 0))
+                         (self.id, name, 0))
 
         cache.delete(self.PAGE_URL_KEY % (self.id))
 
@@ -249,8 +251,8 @@ class Page(MPTTModel):
             return self._languages
 
         languages = [c['language'] for
-                            c in Content.objects.filter(page=self,
-                            type="slug").values('language')]
+                     c in Content.objects.filter(page=self,
+                                                 type="slug").values('language')]
         # remove duplicates
         languages = list(set(languages))
         languages.sort()
@@ -326,9 +328,9 @@ class Page(MPTTModel):
         for p in self.get_descendants():
             exclude_list.append(p.id)
         return Page.objects.exclude(id__in=exclude_list)
-    
+
     ### Content methods
-    
+
     def get_content(self, language, ctype, language_fallback=False):
         """Shortcut method for retrieving a piece of page content
 
@@ -338,7 +340,7 @@ class Page(MPTTModel):
         other languages.
         """
         return Content.objects.get_content(self, language, ctype,
-            language_fallback)
+                                           language_fallback)
 
     def expose_content(self):
         """Return all the current content of this page into a `string`.
@@ -366,14 +368,14 @@ class Page(MPTTModel):
         for ctype in [p.name for p in placeholders]:
             try:
                 content = Content.objects.get_content_object(self,
-                    language, ctype)
+                                                             language, ctype)
                 content_list.append(content)
             except Content.DoesNotExist:
                 pass
         return content_list
-        
+
     ### Title and slug
-    
+
     def get_url_path(self, language=None):
         """Return the URL's path component. Add the language prefix if
         ``PAGE_USE_LANGUAGE_PREFIX`` setting is set to ``True``.
@@ -392,7 +394,7 @@ class Page(MPTTModel):
             language = settings.PAGE_DEFAULT_LANGUAGE
         if settings.PAGE_USE_LANGUAGE_PREFIX:
             return reverse('pages-details-by-path',
-                args=[language, url])
+                           args=[language, url])
         else:
             return reverse('pages-details-by-path', args=[url])
 
@@ -472,7 +474,7 @@ class Page(MPTTModel):
             language = settings.PAGE_DEFAULT_LANGUAGE
 
         return self.get_content(language, 'title', language_fallback=fallback)
-        
+
     ### Formating methods
 
     def margin_level(self):
@@ -499,11 +501,11 @@ class Content(models.Model):
     language = models.CharField(_('language'), max_length=5, blank=False)
     body = models.TextField(_('body'))
     type = models.CharField(_('type'), max_length=100, blank=False,
-        db_index=True)
+                            db_index=True)
     page = models.ForeignKey(Page, verbose_name=_('page'))
 
     creation_date = models.DateTimeField(_('creation date'), editable=False,
-        default=get_now)
+                                         default=get_now)
     objects = ContentManager()
 
     class Meta:
@@ -514,11 +516,12 @@ class Content(models.Model):
     def __str__(self):
         return "{0} :: {1}".format(self.page.slug(), self.body[0:15])
 
+
 @python_2_unicode_compatible
 class PageAlias(models.Model):
     """URL alias for a :class:`Page <pages.models.Page>`"""
     page = models.ForeignKey(Page, null=True, blank=True,
-        verbose_name=_('page'))
+                             verbose_name=_('page'))
     url = models.CharField(max_length=255, unique=True)
     objects = PageAliasManager()
 
@@ -533,3 +536,19 @@ class PageAlias(models.Model):
     def __str__(self):
         return "{0} :: {1}".format(self.url, self.page.get_complete_slug())
 
+
+class PageGroup(MPTTModel):
+    name = models.CharField(_('name'), max_length=255)
+    slug = models.SlugField(_('slug'), max_length=255)
+    parent = models.ForeignKey('self', null=True, blank=True,
+                               related_name='children', verbose_name=_('parent'))
+    pages = models.ManyToManyField(Page, verbose_name=_('pages'), through=Page.groups.through, null=True, blank=True)
+
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('Page group')
+        verbose_name_plural = _('Page groups')
+
+    def __unicode__(self):
+        return self.name

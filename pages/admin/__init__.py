@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Page Admin module."""
 from pages import settings
-from pages.models import Page, Content, PageAlias
+from pages.models import Page, Content, PageAlias, PageGroup
 from pages.phttp import get_language_from_request, get_template_from_request
 from pages.utils import get_placeholders
 from pages.templatetags.pages_tags import PlaceholderNode
@@ -20,6 +20,8 @@ from django.conf import settings as global_settings
 from django.http import HttpResponseRedirect, Http404
 from django.contrib.admin.util import unquote
 from django.contrib.admin.sites import AlreadyRegistered
+from mptt.admin import MPTTModelAdmin
+
 if global_settings.USE_I18N:
     from django.views.i18n import javascript_catalog
 else:
@@ -27,14 +29,16 @@ else:
 
 from os.path import join
 
-
 from django.db import models
+
+
 def create_page_model(placeholders=[]):
     """
     Create Page model
     """
-    app_label='pages'
+    app_label = 'pages'
     module = 'pages.models.test'
+
     class Meta:
         # Using type('Meta', ...) gives a dictproxy error during model creation
         pass
@@ -48,7 +52,7 @@ def create_page_model(placeholders=[]):
     # Add in any fields that were provided
     for p in placeholders:
         attrs[p.name] = models.TextField(blank=True)
-    
+
     attrs["slug"] = models.TextField()
     attrs["title"] = models.TextField()
 
@@ -63,9 +67,9 @@ class PageAdmin(admin.ModelAdmin):
 
     # these mandatory fields are not versioned
     mandatory_placeholders = ('title', 'slug')
-    general_fields = ['title', 'slug', 'status', 'target',
-        'position', 'freeze_date', 'template', 'language',
-        'redirect_to', 'redirect_to_url']
+    general_fields = ['title', 'slug', 'status', 'groups', 'target',
+                      'position', 'freeze_date', 'template', 'language',
+                      'redirect_to', 'redirect_to_url']
 
     if settings.PAGE_USE_SITE_ID and not settings.PAGE_HIDE_SITES:
         general_fields.append('sites')
@@ -85,7 +89,8 @@ class PageAdmin(admin.ModelAdmin):
         general_fields.insert(insert_point, 'publication_date')
 
     from pages.urlconf_registry import registry
-    if(len(registry)):
+
+    if (len(registry)):
         general_fields.append('delegate_to')
         insert_point = general_fields.index('status') + 1
 
@@ -124,23 +129,24 @@ class PageAdmin(admin.ModelAdmin):
 
         # Admin-site-wide views.
         urlpatterns = patterns('',
-            url(r'^$', self.list_pages, name='page-index'),
-            url(r'^(?P<page_id>[0-9]+)/traduction/(?P<language_id>[-\w]+)/$',
-                traduction, name='page-traduction'),
-            url(r'^(?P<page_id>[0-9]+)/get-content/(?P<content_id>[0-9]+)/$',
-                get_content, name='page-get-content'),
-            url(r'^(?P<page_id>[0-9]+)/modify-content/(?P<content_type>[-\w]+)/(?P<language_id>[-\w]+)/$',
-                modify_content, name='page-modify-content'),
-            url(r'^(?P<page_id>[0-9]+)/delete-content/(?P<language_id>[-\w]+)/$',
-                delete_content, name='page-delete-content'),
-            url(r'^(?P<page_id>[0-9]+)/sub-menu/$',
-                sub_menu, name='page-sub-menu'),
-            url(r'^(?P<page_id>[0-9]+)/move-page/$',
-                move_page, name='page-move-page'),
-            url(r'^(?P<page_id>[0-9]+)/change-status/$',
-                change_status, name='page-change-status'),
+                               url(r'^$', self.list_pages, name='page-index'),
+                               url(r'^(?P<page_id>[0-9]+)/traduction/(?P<language_id>[-\w]+)/$',
+                                   traduction, name='page-traduction'),
+                               url(r'^(?P<page_id>[0-9]+)/get-content/(?P<content_id>[0-9]+)/$',
+                                   get_content, name='page-get-content'),
+                               url(
+                                   r'^(?P<page_id>[0-9]+)/modify-content/(?P<content_type>[-\w]+)/(?P<language_id>[-\w]+)/$',
+                                   modify_content, name='page-modify-content'),
+                               url(r'^(?P<page_id>[0-9]+)/delete-content/(?P<language_id>[-\w]+)/$',
+                                   delete_content, name='page-delete-content'),
+                               url(r'^(?P<page_id>[0-9]+)/sub-menu/$',
+                                   sub_menu, name='page-sub-menu'),
+                               url(r'^(?P<page_id>[0-9]+)/move-page/$',
+                                   move_page, name='page-move-page'),
+                               url(r'^(?P<page_id>[0-9]+)/change-status/$',
+                                   change_status, name='page-change-status'),
         )
-        
+
         """for app_name in global_settings.INSTALLED_APPS:
             try:
                 module_ = __import__(app_name, globals(), locals(), ['object'], -1)
@@ -149,7 +155,7 @@ class PageAdmin(admin.ModelAdmin):
             if hasattr(module_, "PAGE_ADMIN_URLS"):
                 urls = __import__(getattr(module_, "PAGE_ADMIN_URLS"), globals(), locals(), ['object'], -1)
                 urlpatterns += urls.urlpatterns"""
-                
+
         urlpatterns += super(PageAdmin, self).urls
 
         return urlpatterns
@@ -189,15 +195,15 @@ class PageAdmin(admin.ModelAdmin):
             placeholder = PlaceholderNode(name)
             extra_data = placeholder.get_extra_data(form.data)
             placeholder.save(page, language, data, change,
-                extra_data=extra_data)
+                             extra_data=extra_data)
 
         for placeholder in get_placeholders(page.get_template()):
-            if(placeholder.name in form.cleaned_data and placeholder.name
-                    not in self.mandatory_placeholders):
+            if (placeholder.name in form.cleaned_data and placeholder.name
+            not in self.mandatory_placeholders):
                 data = form.cleaned_data[placeholder.name]
                 extra_data = placeholder.get_extra_data(form.data)
                 placeholder.save(page, language, data, change,
-                    extra_data=extra_data)
+                                 extra_data=extra_data)
 
         page.invalidate()
 
@@ -251,9 +257,9 @@ class PageAdmin(admin.ModelAdmin):
         """Get a :class:`Page <pages.admin.forms.PageForm>` for the
         :class:`Page <pages.models.Page>` and modify its fields depending on
         the request."""
-        
+
         template = get_template_from_request(request, obj)
-        
+
         model = create_page_model(get_placeholders(template))
 
         form = make_form(model)
@@ -273,7 +279,7 @@ class PageAdmin(admin.ModelAdmin):
         if len(page_templates) > 0:
             template_choices = list(page_templates)
             template_choices.insert(0, (settings.PAGE_DEFAULT_TEMPLATE,
-                    _('Default template')))
+                                        _('Default template')))
             form.base_fields['template'].choices = template_choices
             form.base_fields['template'].initial = force_text(template)
 
@@ -284,7 +290,7 @@ class PageAdmin(admin.ModelAdmin):
             else:
                 initial = None
             form.base_fields[name] = placeholder.get_field(obj,
-                language, initial=initial)
+                                                           language, initial=initial)
 
         return form
 
@@ -300,7 +306,7 @@ class PageAdmin(admin.ModelAdmin):
             int(object_id)
         except ValueError:
             raise Http404('The "%s" part of the location is invalid.'
-                % str(object_id))
+                          % str(object_id))
         try:
             obj = self.model.objects.get(pk=object_id)
         except self.model.DoesNotExist:
@@ -312,12 +318,14 @@ class PageAdmin(admin.ModelAdmin):
             template = get_template_from_request(request, obj)
             extra_context['placeholders'] = get_placeholders(template)
             extra_context['traduction_languages'] = [l for l in
-                settings.PAGE_LANGUAGES if Content.objects.get_content(obj,
-                                    l[0], "title") and l[0] != language]
+                                                     settings.PAGE_LANGUAGES if Content.objects.get_content(obj,
+                                                                                                            l[0],
+                                                                                                            "title") and
+                                                                                l[0] != language]
         extra_context['page'] = obj
 
         response = super(PageAdmin, self).change_view(request, object_id,
-            form_url=form_url, extra_context=extra_context)
+                                                      form_url=form_url, extra_context=extra_context)
         if request.method == 'POST' and isinstance(response, HttpResponseRedirect):
             if '_continue' in request.POST or '_saveasnew' in request.POST or '_addanother' in request.POST:
                 addlanguage = True
@@ -325,6 +333,7 @@ class PageAdmin(admin.ModelAdmin):
                 addlanguage = False
             if addlanguage:
                 from six.moves import urllib
+
                 splitted = list(urllib.parse.urlparse(response.url))
                 query = urllib.parse.parse_qs(splitted[4])
                 query['language'] = language
@@ -340,7 +349,7 @@ class PageAdmin(admin.ModelAdmin):
             'page_languages': settings.PAGE_LANGUAGES,
         }
         return super(PageAdmin, self).add_view(request, form_url,
-                                                            extra_context)
+                                               extra_context)
 
     def has_add_permission(self, request):
         """Return ``True`` if the current user has permission to add a new
@@ -353,13 +362,13 @@ class PageAdmin(admin.ModelAdmin):
         to change the page."""
         lang = get_language_from_request(request)
         return PagePermission(request.user).check('change', page=obj,
-            lang=lang, method=request.method)
+                                                  lang=lang, method=request.method)
 
     def has_delete_permission(self, request, obj=None):
         """Return ``True`` if the current user has permission on the page."""
         lang = get_language_from_request(request)
         return PagePermission(request.user).check('change', page=obj,
-            lang=lang)
+                                                  lang=lang)
 
     def list_pages(self, request, template_name=None, extra_context=None):
         """List root pages"""
@@ -371,7 +380,7 @@ class PageAdmin(admin.ModelAdmin):
 
         if query:
             page_ids = list(set([c.page.pk for c in
-                Content.objects.filter(body__icontains=query)]))
+                                 Content.objects.filter(body__icontains=query)]))
             pages = Page.objects.filter(pk__in=page_ids)
         else:
             pages = Page.objects.root()
@@ -406,11 +415,19 @@ class ContentAdmin(admin.ModelAdmin):
     list_filter = ('page',)
     search_fields = ('body',)
 
+
 #admin.site.register(Content, ContentAdmin)
 
 class AliasAdmin(admin.ModelAdmin):
     list_display = ('page', 'url',)
     list_editable = ('url',)
+
+
+class PageGroupAdmin(admin.ModelAdmin):
+    pass
+
+
+admin.site.register(PageGroup, MPTTModelAdmin)
 
 try:
     admin.site.register(PageAlias, AliasAdmin)

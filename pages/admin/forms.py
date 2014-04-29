@@ -4,9 +4,10 @@ from django import forms
 from django.template.defaultfilters import slugify
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings as global_settings
+from mptt.forms import TreeNodeMultipleChoiceField
 
 from pages import settings
-from pages.models import Page, Content
+from pages.models import Page, Content, PageGroup
 
 from pages.urlconf_registry import get_choices
 from pages.widgets import LanguageChoiceWidget
@@ -72,6 +73,11 @@ def make_form(model_):
             label=_('Language'),
             choices=settings.PAGE_LANGUAGES,
             widget=LanguageChoiceWidget()
+        )
+        groups = TreeNodeMultipleChoiceField(
+            required=False,
+            label=_('Page groups'),
+            queryset=PageGroup.objects.all()
         )
         template = forms.ChoiceField(
             required=False,
