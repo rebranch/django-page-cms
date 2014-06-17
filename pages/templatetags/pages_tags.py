@@ -548,5 +548,5 @@ def get_subgroups(group):
 
 @register.assignment_tag()
 def get_group_pages(group):
-    pages = Page.objects.filter(groups__slug=group, status=Page.PUBLISHED)
+    pages = Page.objects.filter(groups__slug=group, status=Page.PUBLISHED).order_by(u'group_inner_index')
     return pages

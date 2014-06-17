@@ -106,6 +106,7 @@ class Page(MPTTModel):
 
     redirect_to = models.ForeignKey('self', null=True, blank=True,
                                     related_name='redirected_pages')
+    group_inner_index = models.IntegerField(_('group inner index'), help_text=_('Page`s position within group'), default=0)
 
     # Managers
     objects = PageManager()

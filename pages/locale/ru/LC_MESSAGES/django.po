@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: django-page-cms 1.0.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-04-29 11:06+0600\n"
+"POT-Creation-Date: 2014-06-17 11:25+0400\n"
 "PO-Revision-Date: 2011-12-20 14:18+0300\n"
 "Last-Translator: Natalia Yumatova <natalie.stepina@gmail.com>\n"
 "Language-Team: AXION-RTI localization group <m.sychev@axion-rti.ru>\n"
@@ -29,7 +29,7 @@ msgstr "Черновик"
 msgid "author"
 msgstr "Автор"
 
-#: models.py:75 models.py:544
+#: models.py:75 models.py:545
 msgid "parent"
 msgstr "род."
 
@@ -38,7 +38,7 @@ msgstr "род."
 msgid "page groups"
 msgstr "Группы страниц"
 
-#: models.py:77 models.py:507
+#: models.py:77 models.py:508
 msgid "creation date"
 msgstr "создано"
 
@@ -100,51 +100,59 @@ msgstr "Сайт(ы) на которых доступна эта страниц�
 msgid "sites"
 msgstr "сайты"
 
-#: models.py:120 models.py:505 models.py:524 admin/__init__.py:394
+#: models.py:109
+msgid "group inner index"
+msgstr "Внтригрупповой индекс"
+
+#: models.py:109
+msgid "Page`s position within group"
+msgstr "Позиция страницы внутри группы"
+
+#: models.py:121 models.py:506 models.py:525 admin/__init__.py:395
 msgid "page"
 msgstr "страница"
 
-#: models.py:121 models.py:545
+#: models.py:122 models.py:546
 msgid "pages"
 msgstr "страницы"
 
-#: models.py:501
+#: models.py:502
 msgid "language"
 msgstr "язык"
 
-#: models.py:502
+#: models.py:503
 msgid "body"
 msgstr "содержимое"
 
-#: models.py:503
+#: models.py:504
 msgid "type"
 msgstr "тип"
 
-#: models.py:513
+#: models.py:514
 msgid "content"
 msgstr "содержимое"
 
-#: models.py:514
+#: models.py:515
 msgid "contents"
 msgstr "содержимое"
 
-#: models.py:529
+#: models.py:530
 msgid "Aliases"
 msgstr "Синонимы"
 
-#: models.py:541
+#: models.py:542
 msgid "name"
 msgstr ""
 
-#: models.py:542
+#: models.py:543
 msgid "slug"
 msgstr ""
 
-#: models.py:550
+#: models.py:551
 msgid "Page group"
 msgstr "Группа страниц"
 
-#: models.py:551
+#: models.py:552 admin/forms.py:79
 msgid "Page groups"
 msgstr "Группы страниц"
 
@@ -218,27 +226,27 @@ msgstr "widget %s уже зарегистрирован."
 msgid "The widget %s has not been registered."
 msgstr "widget %s не зарегистрирован."
 
-#: admin/__init__.py:99
+#: admin/__init__.py:100
 msgid "General"
 msgstr "Главное"
 
-#: admin/__init__.py:239
+#: admin/__init__.py:240
 msgid "Content"
 msgstr "Содержимое"
 
-#: admin/__init__.py:274 admin/forms.py:24
+#: admin/__init__.py:275 admin/forms.py:25
 msgid "Slug"
 msgstr "Slug"
 
-#: admin/__init__.py:281
+#: admin/__init__.py:282
 msgid "Default template"
 msgstr "Шаблон по умолчанию"
 
-#: admin/forms.py:20
+#: admin/forms.py:21
 msgid "Title"
 msgstr "Заголовок"
 
-#: admin/forms.py:26
+#: admin/forms.py:27
 msgid ""
 "The slug will be used to create the page URL, it must be unique among the "
 "other pages of the same level."
@@ -246,44 +254,44 @@ msgstr ""
 "Slug будет использован в URL страницы, он должен быть уникальным среди "
 "страниц того же уровня."
 
-#: admin/forms.py:64
+#: admin/forms.py:65
 msgid "Another page with this slug already exists"
 msgstr "Другая страница с таким путём существует."
 
-#: admin/forms.py:65
+#: admin/forms.py:66
 msgid "A sibling with this slug already exists at the targeted position"
 msgstr "Другая страница с таким slug уже существует в указанной позиции."
 
-#: admin/forms.py:66
+#: admin/forms.py:67
 msgid "A child with this slug already exists at the targeted position"
 msgstr "Подчиненная страница с таким slug уже существует в указанной позиции."
 
-#: admin/forms.py:67
+#: admin/forms.py:68
 msgid "A sibling with this slug already exists"
 msgstr "Другая страница с таким slug уже существует."
 
-#: admin/forms.py:68
+#: admin/forms.py:69
 msgid "A sibling with this slug already exists at the root level"
 msgstr "Другая с таким slug уже существует на верхнем уровне."
 
-#: admin/forms.py:72
+#: admin/forms.py:73
 msgid "Language"
 msgstr "Язык"
 
-#: admin/forms.py:78
+#: admin/forms.py:84
 msgid "Template"
 msgstr "Шаблон"
 
-#: admin/forms.py:83
+#: admin/forms.py:89
 #, fuzzy
 msgid "Delegate to application"
 msgstr "Делегировать приложению"
 
-#: admin/forms.py:88
+#: admin/forms.py:94
 msgid "Freeze"
 msgstr "Блокировать"
 
-#: admin/forms.py:89
+#: admin/forms.py:95
 msgid "Don't publish any content after this date. Format is 'Y-m-d H:M:S'"
 msgstr ""
 "Прекратить публикацию содержимого после указанной даты. Формат: ГГГГ-ММ-ДД "
@@ -295,6 +303,58 @@ msgstr ""
 
 #: plugins/jsonexport/actions.py:47
 msgid "Import some pages from a JSON file"
+msgstr ""
+
+#: plugins/jsonexport/utils.py:123
+#, python-format
+msgid "Could not find page for redirect-to field '%s'"
+msgstr ""
+
+#: plugins/jsonexport/utils.py:154
+#, python-format
+msgid "Language '%s' not imported"
+msgstr ""
+
+#: plugins/jsonexport/utils.py:192
+#, python-format
+msgid "Original author '%s' not found"
+msgstr ""
+
+#: plugins/jsonexport/utils.py:219
+#, python-format
+msgid "Could not add site '%s' to page"
+msgstr ""
+
+#: plugins/jsonexport/utils.py:274 plugins/jsonexport/utils.py:396
+#, python-format
+msgid "JSON file is invalid: %s"
+msgstr ""
+
+#: plugins/jsonexport/utils.py:311 plugins/jsonexport/utils.py:433
+#, python-format
+msgid "Unsupported file version: %s"
+msgstr ""
+
+#: plugins/jsonexport/utils.py:339 plugins/jsonexport/utils.py:461
+#, python-format
+msgid "%s has no common language with this site"
+msgstr ""
+
+#: plugins/jsonexport/utils.py:344 plugins/jsonexport/utils.py:466
+#, python-format
+msgid ""
+"%s did not include its parent page and a matching one was not found on this "
+"site"
+msgstr ""
+
+#: plugins/jsonexport/utils.py:348 plugins/jsonexport/utils.py:470
+#, python-format
+msgid "%s uses a template not found on this site: %s"
+msgstr ""
+
+#: plugins/jsonexport/utils.py:354 plugins/jsonexport/utils.py:476
+#, python-format
+msgid "%s template contents are different than our template: %s"
 msgstr ""
 
 #: plugins/jsonexport/management/commands/pages_export_json.py:36

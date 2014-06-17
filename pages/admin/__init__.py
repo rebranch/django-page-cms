@@ -67,7 +67,7 @@ class PageAdmin(admin.ModelAdmin):
 
     # these mandatory fields are not versioned
     mandatory_placeholders = ('title', 'slug')
-    general_fields = ['title', 'slug', 'status', 'groups', 'target',
+    general_fields = ['title', 'slug', 'status', 'groups', 'group_inner_index', 'target',
                       'position', 'freeze_date', 'template', 'language',
                       'redirect_to', 'redirect_to_url']
 
