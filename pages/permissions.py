@@ -66,9 +66,12 @@ class PagePermission(authority.permissions.BasePermission):
             if perm:
                 return True
             # then per object permission
-            perm_func = getattr(self, 'manage (%s)_page' % lang)
-            if perm_func(page):
-                return True
+            try:
+                perm_func = getattr(self, 'manage (%s)_page' % lang)
+                if perm_func(page):
+                    return True
+            except:
+                return False
         # last hierarchic permissions because it's more expensive
         perm_func = getattr(self, 'manage hierarchy_page')
         if perm_func(page):
@@ -80,5 +83,6 @@ class PagePermission(authority.permissions.BasePermission):
 
         # everything else failed, no permissions
         return False
+
 
 authority.register(Page, PagePermission)
